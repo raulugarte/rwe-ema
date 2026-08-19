@@ -1,0 +1,51 @@
+/*
+ * brand.css — RWE design tokens
+ * Extracted from https://www.rwe.com/ (computed styles). Values are global
+ * design tokens consumed by styles.css, lazy-styles.css, and block CSS.
+ *
+ * Font note: RWE ships proprietary web fonts named "regular"/"bold" from its
+ * own origin. They cannot be re-hosted, so we use RWE's own declared fallback
+ * stack (Trebuchet MS, Tahoma, sans-serif) as the primary family.
+ */
+
+:root {
+  /* brand colors */
+  --rwe-navy: #1d4477;
+  --rwe-teal: #00a19f;
+  --rwe-bright-blue: #00b1eb;
+  --rwe-light: #e8e8e4;
+  --rwe-light-tint: #f4f4f2;
+  --rwe-grey-border: #d9d9d6;
+  --rwe-gradient: linear-gradient(45deg, #1d4477 22%, #00a19f);
+
+  /* semantic colors */
+  --background-color: #fff;
+  --light-color: var(--rwe-light);
+  --dark-color: var(--rwe-navy);
+  --text-color: var(--rwe-navy);
+  --text-muted-color: #4a4a4a;
+  --link-color: var(--rwe-teal);
+  --link-hover-color: var(--rwe-navy);
+
+  /* fonts */
+  --body-font-family: "Trebuchet MS", tahoma, verdana, sans-serif;
+  --heading-font-family: "Trebuchet MS", tahoma, verdana, sans-serif;
+
+  /* body sizes (RWE base body is 15px) */
+  --body-font-size-m: 16px;
+  --body-font-size-s: 15px;
+  --body-font-size-xs: 14px;
+
+  /* heading sizes — mobile first */
+  --heading-font-size-xxl: 32px;
+  --heading-font-size-xl: 26px;
+  --heading-font-size-l: 20px;
+  --heading-font-size-m: 17px;
+  --heading-font-size-s: 16px;
+  --heading-font-size-xs: 15px;
+
+  /* layout */
+  --content-width: 1170px;
+  --section-padding: 48px;
+  --nav-height: 64px;
+}

@@ -1,27 +1,317 @@
+/*
+ * cards block — RWE teaser design
+ * Values grounded in computed styles extracted from https://www.rwe.com/ teasers:
+ *  - white card, square corners (radius 0), no shadow at rest
+ *  - title: navy (#1d4477), 18px/24px, bold
+ *  - description: navy body copy
+ *  - CTA ("Read more"/"Continue"): teal (#00a19f), pinned to the card bottom
+ *  - navy->teal gradient used as a tasteful hover accent (RWE image teasers)
+ * Two variants: default (image + text) and .no-images (text only).
+ */
+
+/* ---- grid: 1 col mobile, 2 tablet, 3 desktop ---- */
 .cards > ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(257px, 1fr));
+  grid-template-columns: 1fr;
   gap: 24px;
 }
 
+@media (width >= 600px) {
+  .cards > ul {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (width >= 900px) {
+  .cards > ul {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+}
+
+/* ---- card shell: clean rectangular, equal height ---- */
 .cards > ul > li {
-  border: 1px solid #dadada;
+  position: relative;
+  display: flex;
+  flex-direction: column;
   background-color: var(--background-color);
+  border: 1px solid var(--rwe-grey-border);
+  border-radius: 0;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.cards .cards-card-body {
-  margin: 16px;
+/* navy->teal gradient accent bar, revealed on hover (RWE brand cue) */
+.cards > ul > li::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background-image: var(--rwe-gradient);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.25s ease;
+  z-index: 1;
 }
 
+.cards > ul > li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgb(29 68 119 / 12%);
+}
+
+.cards > ul > li:hover::before {
+  transform: scaleX(1);
+}
+
+/* ---- image-teaser variant (default, has .cards-card-image) ----
+   Per the RWE reference, these ARE boxed teasers: a white card with a subtle
+   light-grey border, the image + text inset inside via card padding, a 24px
+   navy heading, muted-grey body copy, and a teal-OUTLINED "Read more" button.
+   Scoped to :not(.no-images) so the press-release / social / text teasers keep
+   their own styling. */
+.cards:not(.no-images) > ul > li {
+  background-color: var(--background-color);
+  border: 1px solid var(--rwe-grey-border);
+  border-radius: 0;
+  padding: 16px;
+  overflow: visible;
+}
+
+/* image zoom is the hover cue (see foot of file); no extra card lift/shadow */
+.cards:not(.no-images) > ul > li:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* the gradient hover bar belongs to the other boxed variants only */
+.cards:not(.no-images) > ul > li::before {
+  content: none;
+}
+
+/* ---- image (default variant) ---- */
 .cards .cards-card-image {
   line-height: 0;
 }
 
-.cards > ul > li img {
+.cards .cards-card-image img {
+  display: block;
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
+}
+
+/* ---- body ---- */
+.cards .cards-card-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  padding: 24px;
+}
+
+.cards .cards-card-body > * {
+  margin-top: 0;
+}
+
+/* title: navy, teaser-sized, bold — overrides global teal h2 in card context */
+.cards .cards-card-body :is(h1, h2, h3, h4, h5, h6) {
+  margin: 0 0 12px;
+  font-size: var(--heading-font-size-m);
+  line-height: 1.2;
+  color: var(--rwe-navy);
+}
+
+.cards .cards-card-body :is(h1, h2, h3, h4, h5, h6) a:any-link {
+  color: inherit;
+}
+
+.cards .cards-card-body :is(h1, h2, h3, h4, h5, h6) a:hover {
+  text-decoration: underline;
+}
+
+.cards .cards-card-body p {
+  margin: 0 0 12px;
+}
+
+/* CTA link pinned to the bottom, teal, with a small arrow affordance */
+.cards .cards-card-body p:last-child {
+  margin-top: auto;
+  margin-bottom: 0;
+  padding-top: 12px;
+}
+
+.cards .cards-card-body p:last-child a:any-link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--rwe-teal);
+}
+
+.cards .cards-card-body p:last-child a:any-link::after {
+  content: "\203A";
+  margin-left: 6px;
+  font-weight: 700;
+  transition: transform 0.2s ease;
+}
+
+.cards > ul > li:hover .cards-card-body p:last-child a:any-link::after {
+  transform: translateX(3px);
+}
+
+.cards .cards-card-body p:last-child a:hover {
+  color: var(--rwe-navy);
+  text-decoration: none;
+}
+
+/* image-teaser body: comfortable gap under the image, room to the card edges. */
+.cards:not(.no-images) .cards-card-body {
+  padding: 16px 8px 8px;
+}
+
+.cards:not(.no-images) .cards-card-body :is(h1, h2, h3, h4, h5, h6) {
+  font-size: 24px;
+}
+
+/* description: RWE's muted grey body copy (not navy, not bright blue) */
+.cards:not(.no-images) .cards-card-body p:not(:last-child) {
+  color: var(--text-muted-color);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* CTA: teal-OUTLINED button (matches the RWE reference — white fill, teal border
+   + label; fills teal on hover). */
+.cards:not(.no-images) .cards-card-body p:last-child a:any-link {
+  align-self: flex-start;
+  padding: 10px 24px;
+  border: 2px solid var(--rwe-teal);
+  background-color: transparent;
+  color: var(--rwe-teal);
+  font-weight: 700;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* the outlined button uses no chevron affordance (RWE shows a plain label) */
+/* stylelint-disable-next-line no-descending-specificity */
+.cards:not(.no-images) .cards-card-body p:last-child a:any-link::after {
+  content: none;
+}
+
+.cards:not(.no-images) .cards-card-body p:last-child a:hover,
+.cards:not(.no-images) .cards-card-body p:last-child a:focus-visible {
+  background-color: var(--rwe-teal);
+  color: #fff;
+  text-decoration: none;
+}
+
+/* ---- no-images variant: text-only teasers, same grid ---- */
+.cards.no-images .cards-card-body {
+  padding: 24px;
+}
+
+/*
+ * Press-release cards (RWE "Media & share price" section).
+ * Scoped to the ONLY no-images cards whose body starts with a plain <p> (the
+ * date) rather than a heading — this distinguishes press releases from the
+ * section-5 text teasers and the contact cards, which start with a heading.
+ * Applies RWE's press-list cues: a navy->teal gradient date-box and a gradient
+ * "Continue" pill (source class: color-cta--gradient-green-reverse).
+ */
+
+/* date-box: compact navy->teal gradient tag, white text */
+.cards.no-images .cards-card-body:has(> p:first-child) > p:first-child {
+  align-self: flex-start;
+  margin: 0 0 14px;
+  padding: 5px 12px;
+  background-image: var(--rwe-gradient);
+  color: #fff;
+  font-size: var(--body-font-size-xs);
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* "Continue" rendered as a gradient pill button (overrides the teal text link) */
+.cards.no-images .cards-card-body:has(> p:first-child) p:last-child a:any-link {
+  align-self: flex-start;
+  padding: 8px 16px;
+  background-image: var(--rwe-gradient);
+  color: #fff;
+}
+
+.cards.no-images .cards-card-body:has(> p:first-child) p:last-child a:hover,
+.cards.no-images .cards-card-body:has(> p:first-child) p:last-child a:focus-visible {
+  background-image: none;
+  background-color: var(--rwe-navy);
+  color: #fff;
+  text-decoration: none;
+}
+
+/* ---- icon-teaser variant ("If you have any questions…": Contact / RWE in your
+   area / Documents) ----
+   RWE renders these as a small centered line-art ICON above centered heading +
+   copy — not a full-bleed photo. The recovered assets are square decorative
+   icons (600×600 on white), but the default image-card rule stretches them to a
+   full-width 4:3 cover, ballooning the icon. These cards are the only image-card
+   teasers whose heading is an <h2> (photo teasers use <h3>), so scope by that.
+   Placed last so its higher specificity doesn't trip no-descending-specificity
+   against the earlier image/body rules. */
+.cards:not(.no-images) > ul > li:has(.cards-card-body h2) {
+  align-items: center;
+  text-align: center;
+}
+
+.cards:not(.no-images) > ul > li:has(.cards-card-body h2) .cards-card-image {
+  width: 96px;
+}
+
+.cards:not(.no-images) > ul > li:has(.cards-card-body h2) .cards-card-image img {
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+}
+
+.cards:not(.no-images) > ul > li:has(.cards-card-body h2) .cards-card-body {
+  align-items: center;
+}
+
+/* Photo-teaser image hover zoom (matches RWE's tea01 "right-to-left-animation"
+   teasers, whose image scales up slightly on hover). Scoped to the photo image
+   cards (heading is an <h3>) so the small icon teasers (<h2>) don't zoom; the
+   wrapper clips the overflow so the zoom stays within the card frame. Placed
+   last so its higher specificity doesn't trip no-descending-specificity. */
+.cards:not(.no-images) > ul > li:has(.cards-card-body h3) .cards-card-image {
+  overflow: hidden;
+}
+
+.cards:not(.no-images) > ul > li:has(.cards-card-body h3) .cards-card-image img {
+  transition: transform 0.4s ease;
+}
+
+.cards:not(.no-images) > ul > li:has(.cards-card-body h3):hover .cards-card-image img,
+.cards:not(.no-images) > ul > li:has(.cards-card-body h3):focus-within .cards-card-image img {
+  transform: scale(1.05);
+}
+
+/* ---- careers image-teaser variant (RWE "inside-bas-05": RWE's career world /
+   as an employer / Meet #TeamRWE) ----
+   Per the reference, these differ from the white-bordered "Our Energy" teasers:
+   a subtle LIGHT-GREY filled panel (no border), a FULL-BLEED image flush to the
+   card's top/left/right edges, and NAVY body copy. Scoped to the careers section
+   (the only image-card grid inside a .columns-container section). */
+.section.columns-container .cards:not(.no-images) > ul > li {
+  background-color: var(--rwe-light-tint);
+  border: 0;
+  padding: 0;
+}
+
+/* image spans the full card width (padding lives on the body instead) */
+.section.columns-container .cards:not(.no-images) .cards-card-body {
+  padding: 20px 24px 24px;
+}
+
+/* body copy is navy here, not the muted grey of the bordered teasers */
+/* stylelint-disable-next-line no-descending-specificity */
+.section.columns-container .cards:not(.no-images) .cards-card-body p:not(:last-child) {
+  color: var(--rwe-navy);
 }

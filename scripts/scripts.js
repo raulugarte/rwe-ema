@@ -10,6 +10,10 @@ import {
   loadSections,
   loadCSS,
   buildBlock,
+  decorateBlock,
+  readBlockConfig,
+  toClassName,
+  toCamelCase,
 } from './aem.js';
 
 if (window.trustedTypes && window.trustedTypes.createPolicy) {
@@ -74,6 +78,49 @@ function buildWidgetAutoBlocks(main) {
 }
 
 /**
+ * Turns links to video files (self-hosted .mp4 or external Canto video URLs)
+ * into `video` blocks, carrying the adjacent poster image when present. RWE
+ * feature/teaser videos are authored as an optional poster `<picture>` followed
+ * by a link to the video file; this upgrades them in place to a real player
+ * without disturbing surrounding layout (e.g. columns text-beside-video).
+ * @param {Element} main The container element
+ */
+function buildVideoAutoBlocks(main) {
+  const isVideoHref = (href) => /\.mp4($|[?#])/i.test(href) || /canto\.[^/]+\/.*\/video\//i.test(href);
+  const videoLinks = [...main.querySelectorAll('a[href]')]
+    .filter((a) => isVideoHref(a.getAttribute('href') || ''))
+    .filter((a) => !a.closest('.video'));
+  videoLinks.forEach((link) => {
+    // A poster picture, when authored, PRECEDES the video link in the same cell
+    // (poster-then-link). Only adopt a picture that appears before the link so
+    // unrelated sibling graphics that follow the link are not mistaken for a
+    // poster.
+    let picture = null;
+    let prev = link.previousElementSibling;
+    while (prev) {
+      if (prev.tagName === 'PICTURE') { picture = prev; break; }
+      if (prev.querySelector && prev.querySelector('picture')) { picture = prev.querySelector('picture'); break; }
+      prev = prev.previousElementSibling;
+    }
+    const elems = [];
+    if (picture) elems.push(picture);
+    elems.push(link.cloneNode(true));
+    const videoBlock = buildBlock('video', { elems });
+    const p = link.closest('p');
+    // replace the whole <p> when the link is its only content, else just the link
+    if (p && p.querySelectorAll('a').length === 1 && p.textContent.trim() === link.textContent.trim()) {
+      p.replaceWith(videoBlock);
+    } else {
+      link.replaceWith(videoBlock);
+    }
+    // These blocks are nested inside other blocks (e.g. columns cells), so the
+    // top-level decorateBlocks (`div.section > div > div`) will not reach them.
+    // Decorate here so the normal loadSection flow loads video.js/.css.
+    decorateBlock(videoBlock);
+  });
+}
+
+/**
  * Builds all synthetic blocks in a container element.
  * @param {Element} main The container element
  */
@@ -97,6 +144,7 @@ function buildAutoBlocks(main) {
       });
     }
     buildWidgetAutoBlocks(main);
+    buildVideoAutoBlocks(main);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Auto Blocking failed', error);
@@ -143,6 +191,32 @@ function decorateButtons(main) {
 }
 
 /**
+ * Applies `section-metadata` blocks to their parent section as data attributes
+ * and style classes, then removes the block. This project's aem.js
+ * `decorateSections` does not process section metadata, so it is handled here
+ * (mirrors the standard AEM boilerplate behaviour) without modifying aem.js.
+ * @param {Element} main The main element
+ */
+function decorateSectionMetadata(main) {
+  main.querySelectorAll(':scope > .section > div > .section-metadata').forEach((sectionMeta) => {
+    const section = sectionMeta.closest('.section');
+    const meta = readBlockConfig(sectionMeta);
+    Object.keys(meta).forEach((key) => {
+      if (key === 'style') {
+        const styles = meta.style
+          .split(',')
+          .filter((style) => style)
+          .map((style) => toClassName(style.trim()));
+        styles.forEach((style) => section.classList.add(style));
+      } else {
+        section.dataset[toCamelCase(key)] = meta[key];
+      }
+    });
+    sectionMeta.parentElement.remove();
+  });
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -151,6 +225,7 @@ export function decorateMain(main) {
   decorateIcons(main);
   buildAutoBlocks(main);
   decorateSections(main);
+  decorateSectionMetadata(main);
   decorateBlocks(main);
   decorateButtons(main);
 }

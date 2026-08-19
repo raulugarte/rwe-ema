@@ -1,12 +1,390 @@
+/*
+ * columns — RWE two-up feature/content layout.
+ * Mobile-first: single stacked column; two side-by-side columns from 600px up,
+ * vertically centred with a comfortable gap. Media fills its column with square
+ * corners and no distortion; text/links inherit the navy body + teal
+ * link/heading brand tokens defined in brand.css / styles.css.
+ */
+
 .columns > div {
   display: flex;
   flex-direction: column;
+  gap: 24px;
 }
 
-.columns img {
+/* ---------- Overlay teaser card ----------
+   When a columns cell bundles a video/image WITH a heading + copy + link (the
+   "Responsibility & sustainability" teaser), RWE renders it as a full-bleed card
+   — the media fills the whole cell and the text overlays the bottom in white
+   over a dark gradient scrim, rather than stacking plainly beneath it. Scoped to
+   .video-wrapper:has(h3) so standalone video players (no heading) are untouched.
+   NOTE: the block markup nests everything in a single inner <p>:
+   .video-wrapper > p > [div.video, h3, p (copy), p (link)] — so the inner <p>
+   is the actual flex/positioning context. */
+.columns .video-wrapper:has(h3) {
+  position: relative;
+  overflow: hidden;
+
+  /* min height gives the media presence; the card GROWS if the overlaid text
+     needs more room, so the description + "Read more" are never clipped. */
+  min-height: 360px;
+}
+
+.columns .video-wrapper:has(h3) > p {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+
+  /* fill at least the card height so the text anchors to the bottom, but expand
+     with content when the copy is tall */
+  min-height: 360px;
+  margin: 0;
+  padding: 28px;
+}
+
+/* the video block is the full-card background layer, covering the whole card
+   (including any extra height the text forces) */
+.columns .video-wrapper:has(h3) .video {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  height: 100%;
+  margin: 0;
+}
+
+.columns .video-wrapper:has(h3) .video-facade {
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+/* dark gradient scrim so the white overlay text stays legible over the media */
+.columns .video-wrapper:has(h3) > p::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: linear-gradient(to top, rgb(0 0 0 / 72%) 0%, rgb(0 0 0 / 10%) 48%, rgb(0 0 0 / 0%) 72%);
+  pointer-events: none;
+}
+
+/* heading + copy + "Read more" overlay the bottom in white, above the scrim */
+.columns .video-wrapper:has(h3) h3,
+.columns .video-wrapper:has(h3) > p > p {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: #fff;
+}
+
+.columns .video-wrapper:has(h3) h3 {
+  margin-bottom: 8px;
+  font-size: var(--heading-font-size-m);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.columns .video-wrapper:has(h3) > p > p {
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.columns .video-wrapper:has(h3) a {
+  display: inline-block;
+  margin-top: 4px;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.columns .video-wrapper:has(h3) a::after {
+  content: ' ›';
+}
+
+.columns .video-wrapper:has(h3) a:hover,
+.columns .video-wrapper:has(h3) a:focus-visible {
+  color: rgb(62 216 195);
+  text-decoration: underline;
+}
+
+/* keep the play button above the scrim */
+.columns .video-wrapper:has(h3) .video-play {
+  z-index: 1;
+}
+
+/* ========== "media + link-panel" variant (columns-media-links) ==============
+   RWE's "Responsibility & sustainability" teaser (a wide landscape media card)
+   sits beside a narrow teal "Information for…" link panel — NOT a 50/50 split.
+   columns.js tags the row: the media cell as .columns-media, the link cell as
+   .columns-links, and the block as .columns-media-links. Desktop = ~74% media /
+   ~26% panel; mobile = stacked media-over-panel. Class-based (no :has()) so the
+   variant is reliable and does not depend on markup-nesting quirks. */
+
+/* mobile-first: stack media above the link panel, full width each */
+.columns.columns-media-links > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* --- media area: wide landscape card, poster fills it, overlay text at foot ---
+   The overlay teaser rules above (.video-wrapper:has(h3)) already lay the title/
+   copy/CTA over the media with a dark scrim. NOTE: the media cell IS the
+   .video-wrapper (columns.js adds .columns-media to that same element), so these
+   rules target .columns-media directly — not a descendant .video-wrapper. Size
+   the card as a landscape ~3:2 area whose height derives from its width (and
+   grows if the overlaid copy is taller), and let the poster cover it. */
+.columns.columns-media-links .columns-media {
+  order: 0;
+  min-height: 0;
+}
+
+.columns.columns-media-links .columns-media > p {
+  /* The recovered poster/video (poster-tea03r-wald.jpg) is natively 640×360 =
+     16:9, matching RWE's source tea03r-wald media. Use that measured ratio as
+     the media's natural shape: a wide landscape filling the full cell width with
+     no letterboxing. When the media is the taller element in the row (desktop),
+     this 16:9 drives the row height with the source uncropped. */
+  aspect-ratio: 16 / 9;
+
+  /* When the link panel is the taller element (e.g. narrower desktop/tablet
+     where 6 rows exceed a 16:9 media), the flex row stretches this cell; fill
+     that height so the media (absolute .video, object-fit:cover) covers the cell
+     instead of leaving an empty gap below it. Height stays driven by content/
+     aspect — never a fixed viewport value. */
+  min-height: 100%;
+}
+
+/* --- right link panel: teal background, white heading, full-width link rows --- */
+.columns.columns-media-links .columns-links {
+  order: 1;
+  box-sizing: border-box;
+  padding: 32px 28px;
+  background-color: var(--rwe-teal);
+  color: #fff;
+}
+
+.columns.columns-media-links .columns-links h3 {
+  margin: 0 0 12px;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.columns.columns-media-links .columns-links ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.columns.columns-media-links .columns-links li {
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid rgb(255 255 255 / 30%);
+}
+
+.columns.columns-media-links .columns-links li:first-child {
+  border-top: 1px solid rgb(255 255 255 / 30%);
+}
+
+/* each link is a full-width row: white text left, arrow pinned right */
+/* stylelint-disable-next-line no-descending-specificity */
+.columns.columns-media-links .columns-links li a:any-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  color: #fff;
+  font-size: 18px;
+  text-decoration: none;
+}
+
+.columns.columns-media-links .columns-links li a:any-link::after {
+  content: '›';
+  flex: 0 0 auto;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.columns.columns-media-links .columns-links li a:hover,
+.columns.columns-media-links .columns-links li a:focus-visible {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.columns.columns-media-links .columns-links li a:hover::after,
+.columns.columns-media-links .columns-links li a:focus-visible::after {
+  transform: translateX(4px);
+}
+
+/* tablet/desktop: media beside panel, wide landscape media (~74%) / narrow
+   teal panel (~26%), top-aligned so the panel starts level with the media. */
+@media (width >= 900px) {
+  .columns.columns-media-links > div {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .columns.columns-media-links .columns-media {
+    flex: 0 0 74%;
+    max-width: 74%;
+    min-width: 0;
+  }
+
+  .columns.columns-media-links .columns-links {
+    flex: 0 0 26%;
+    max-width: 26%;
+    min-width: 0;
+  }
+}
+
+/* ---------- Full-width overlay teaser (video + separate text cell) ----------
+   Some rows put the video in the first cell and the heading/copy/link in a
+   SEPARATE sibling cell (e.g. "Obtaining energy and trading it globally", and
+   the careers "Explore your opportunities"). RWE renders these as ONE full-width
+   card: the video is a full-bleed background and the text overlays the bottom in
+   white over a dark scrim. Scoped to rows whose FIRST cell is a bare
+   .video-wrapper with no heading — this excludes the best-energy row (video is
+   the 2nd cell) and the Responsibility teaser (heading lives in the video cell). */
+.columns > div:has(> .video-wrapper:first-child):not(:has(.video-wrapper h3)) {
+  position: relative;
+  display: block;
+}
+
+.columns > div:has(> .video-wrapper:first-child):not(:has(.video-wrapper h3)) > .video-wrapper {
+  margin: 0;
+}
+
+.columns > div:has(> .video-wrapper:first-child):not(:has(.video-wrapper h3)) .video {
+  margin: 0;
+}
+
+.columns > div:has(> .video-wrapper:first-child):not(:has(.video-wrapper h3)) .video-facade {
+  aspect-ratio: 21 / 9;
+  min-height: 320px;
+}
+
+/* the inner <p> is the positioning context for both the video and any extra
+   decorative image (the teal "Impact Print" fingerprint watermark) */
+.columns > div:has(> .video-wrapper:first-child):not(:has(.video-wrapper h3)) > .video-wrapper > p {
+  position: relative;
+  margin: 0;
+}
+
+/* a stray decorative picture (the teal "Impact Print" fingerprint) sits as a
+   DIRECT child of the inner <p> — the video's own <picture> is nested inside
+   .video-facade, so this direct-child <picture> is the watermark. Left in normal
+   flow the global `.columns img{width:100%}` stretches it full-width and balloons
+   the card; pin it small in the top-right as a faint watermark (matches RWE). */
+.columns > div:has(> .video-wrapper:first-child):not(:has(.video-wrapper h3)) > .video-wrapper > p > picture {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  z-index: 1;
+  width: 60px;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.columns > div:has(> .video-wrapper:first-child):not(:has(.video-wrapper h3)) > .video-wrapper > p > picture img {
   width: 100%;
+  height: auto;
 }
 
+/* the text sits in a SOLID navy→teal gradient panel on the RIGHT, vertically
+   centered and inset from the card edges (matches RWE's careers/trading teasers)
+   — an opaque brand panel, not a faint scrim, so the white copy is fully legible
+   over any background image. */
+.columns > div:has(> .video-wrapper:first-child):not(:has(.video-wrapper h3)) > div:not(.video-wrapper) {
+  position: absolute;
+  inset: 50% 24px auto auto;
+  z-index: 1;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 40%;
+  min-width: 300px;
+  padding: 28px 32px;
+  transform: translateY(-50%);
+  background-image: var(--rwe-gradient);
+  color: #fff;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.columns > div:has(> .video-wrapper:first-child):not(:has(.video-wrapper h3)) > div:not(.video-wrapper) h3 {
+  margin: 0 0 10px;
+  color: #fff;
+  font-size: var(--heading-font-size-l);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.columns > div:has(> .video-wrapper:first-child):not(:has(.video-wrapper h3)) > div:not(.video-wrapper) p {
+  margin: 4px 0 0;
+  line-height: 1.45;
+}
+
+/* CTA: white-outlined button (matches RWE's overlay teasers) */
+/* stylelint-disable-next-line no-descending-specificity */
+.columns > div:has(> .video-wrapper:first-child):not(:has(.video-wrapper h3)) > div:not(.video-wrapper) a {
+  align-self: flex-start;
+  margin-top: 20px;
+  padding: 10px 20px;
+  border: 2px solid #fff;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.columns > div:has(> .video-wrapper:first-child):not(:has(.video-wrapper h3)) > div:not(.video-wrapper) a:hover,
+.columns > div:has(> .video-wrapper:first-child):not(:has(.video-wrapper h3)) > div:not(.video-wrapper) a:focus-visible {
+  background-color: #fff;
+  color: var(--rwe-navy);
+  text-decoration: none;
+}
+
+/* narrow screens: the inset right panel would be too cramped, so the gradient
+   panel spans the full-width bottom of the card instead. */
+@media (width < 600px) {
+  .columns > div:has(> .video-wrapper:first-child):not(:has(.video-wrapper h3)) > div:not(.video-wrapper) {
+    inset: auto 0 0;
+    width: 100%;
+    min-width: 0;
+    padding: 24px;
+    transform: none;
+  }
+}
+
+/* media fills its column edge-to-edge, square corners, aspect preserved */
+/* stylelint-disable-next-line no-descending-specificity */
+.columns img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0;
+}
+
+/* Portrait/badge media (e.g. the careers "Impact Print" logo) is capped so it
+   never dominates the layout; aspect ratio preserved, centred in its column. */
+/* stylelint-disable-next-line no-descending-specificity */
+.columns .columns-img-col img {
+  width: auto;
+  max-width: 100%;
+  max-height: 460px;
+  margin-inline: auto;
+}
+
+/* stacked order on mobile: media first, copy second */
+/* stylelint-disable-next-line no-descending-specificity */
 .columns > div > div {
   order: 1;
 }
@@ -15,19 +393,61 @@
   order: 0;
 }
 
-.columns > div > .columns-img-col img {
-  display: block;
+/* long raw media URLs (imported video links) wrap instead of overflowing */
+/* stylelint-disable-next-line no-descending-specificity */
+.columns a {
+  overflow-wrap: anywhere;
+}
+
+/* tablet/desktop: side-by-side, equal columns, vertically centred */
+@media (width >= 600px) {
+  .columns > div {
+    flex-direction: row;
+    align-items: center;
+    gap: 40px;
+  }
+
+  .columns > div > div {
+    flex: 1 1 0;
+    min-width: 0;
+    order: unset;
+  }
 }
 
 @media (width >= 900px) {
   .columns > div {
-    align-items: center;
-    flex-direction: unset;
-    gap: 24px;
+    gap: 48px;
   }
+}
 
-  .columns > div > div {
-    flex: 1;
-    order: unset;
-  }
+/* ---------- text-beside-video CTA ("Our strategy at a glance") ----------
+   In the "best energy company" row (text cell + video cell, video is the 2nd
+   cell), RWE renders the CTA as a SOLID navy→teal gradient button
+   (source class: color-cta--gradient-green btn), not a plain teal text link.
+   Scoped to the non-media-links two-col row whose text cell sits next to a
+   .video-wrapper that is NOT the first cell — this excludes the video-first
+   full-width overlay teasers (which keep their own white-outlined button) and
+   the media-links / Information-for variant. Placed last so its higher
+   specificity does not trip no-descending-specificity against later rules. */
+.columns.columns-2-cols:not(.columns-media-links)
+  > div:has(> .video-wrapper):not(:has(> .video-wrapper:first-child))
+  > div:not(.video-wrapper) p a:any-link {
+  display: inline-block;
+  padding: 12px 24px;
+  background-image: var(--rwe-gradient);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  transition: filter 0.2s ease;
+}
+
+.columns.columns-2-cols:not(.columns-media-links)
+  > div:has(> .video-wrapper):not(:has(> .video-wrapper:first-child))
+  > div:not(.video-wrapper) p a:hover,
+.columns.columns-2-cols:not(.columns-media-links)
+  > div:has(> .video-wrapper):not(:has(> .video-wrapper:first-child))
+  > div:not(.video-wrapper) p a:focus-visible {
+  filter: brightness(0.92);
+  color: #fff;
+  text-decoration: none;
 }

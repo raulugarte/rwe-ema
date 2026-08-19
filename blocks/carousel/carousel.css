@@ -1,0 +1,589 @@
+/*
+ * Carousel Block — RWE theming
+ *
+ * Two variants appear on the RWE homepage; they share the same `.carousel`
+ * markup and are told apart by their heading level:
+ *   - Hero  (slide content has an <h1>): full-bleed rotating slides on the RWE
+ *     navy→teal gradient with a large white heading, subheading and CTA link.
+ *   - Spotlight news slider (slide content has an <h4>): light cards with a
+ *     navy→teal gradient top accent, date, heading, description and teal CTA.
+ *
+ * The migrated content has no slide images, so the brand gradient stands in as
+ * the hero background. A <picture> added to the image cell will still render
+ * (absolutely positioned, cover) on top of the gradient.
+ */
+
+/* ---------- Shared structure ---------- */
+.carousel .carousel-slides-container {
+  position: relative;
+}
+
+.carousel .carousel-slides,
+.carousel .carousel-slide-indicators {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.carousel .carousel-slides {
+  display: flex;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  overflow: scroll clip;
+}
+
+.carousel .carousel-slides::-webkit-scrollbar {
+  display: none;
+}
+
+/* Vertical (Spotlight) variant: slides stack and scroll on the Y axis, showing
+   one slide at a time in a fixed-height viewport (matches RWE's up/down slider). */
+.carousel.carousel-vertical .carousel-slides {
+  flex-direction: column;
+  scroll-snap-type: y mandatory;
+
+  /* overflow: hidden (not scroll) so the mouse wheel / trackpad can't move the
+     slides — navigation is arrows + dots only. Programmatic scrollTo() from
+     showSlide() still works on a hidden-overflow container. */
+  overflow: hidden;
+
+  /* fixed viewport = one slide tall; stacked (mobile/tablet) slides are taller
+     than the side-by-side desktop layout, so the height steps down at ≥900. */
+  height: 460px;
+}
+
+.carousel.carousel-vertical .carousel-slide {
+  flex: 0 0 100%;
+  height: 100%;
+  min-height: 0;
+
+  /* clip to the viewport so the neighbouring slide never bleeds through */
+  overflow: hidden;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel .carousel-slide {
+  box-sizing: border-box;
+  position: relative;
+  flex: 0 0 100%;
+  width: 100%;
+  min-width: 0;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.carousel .carousel-slide-content {
+  box-sizing: border-box;
+}
+
+/* Hero variant only: the image is a full-bleed background layer behind the
+   content panel. (Scoped to the hero so it does NOT apply to the Spotlight
+   slider, whose image sits beside the text in normal flow.) */
+.carousel:has(.carousel-slide-content h1) .carousel-slide .carousel-slide-image picture {
+  position: absolute;
+  inset: 0;
+}
+
+.carousel .carousel-slide .carousel-slide-image picture > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---------- Slide indicators (both variants) ---------- */
+.carousel .carousel-slide-indicators {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 12px;
+  line-height: 0;
+  background-color: transparent;
+}
+
+.carousel .carousel-slide-indicator button {
+  width: 10px;
+  height: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background-color: var(--rwe-grey-border);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.carousel .carousel-slide-indicator button:disabled,
+.carousel .carousel-slide-indicator button:hover,
+.carousel .carousel-slide-indicator button:focus-visible {
+  background-color: var(--rwe-teal);
+}
+
+/* ---------- Navigation arrows (both variants) ---------- */
+.carousel .carousel-navigation-buttons {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  right: 12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transform: translateY(-50%);
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel .carousel-navigation-buttons button {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background-color: rgb(255 255 255 / 85%);
+  color: var(--rwe-navy);
+  box-shadow: 0 1px 6px rgb(0 0 0 / 18%);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.carousel .carousel-navigation-buttons button:hover,
+.carousel .carousel-navigation-buttons button:focus-visible {
+  background-color: var(--rwe-teal);
+  color: #fff;
+}
+
+.carousel .carousel-navigation-buttons button::after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: calc(50% + 2px);
+  width: 10px;
+  height: 10px;
+  border: 2px solid currentcolor;
+  border-bottom: 0;
+  border-left: 0;
+  transform: translate(-50%, -50%) rotate(-135deg);
+}
+
+.carousel .carousel-navigation-buttons button.slide-next::after {
+  left: calc(50% - 2px);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* Vertical (Spotlight) controls: ONE navigation group (prev · dot rail · next),
+   built as a single .carousel-vnav wrapper in carousel.js. It is absolutely
+   positioned in the left gutter and vertically centred against the slide
+   viewport as a whole — via top:50% + translateY(-50%) — rather than centring
+   the arrows and dots independently. The 48px column width keeps the chevrons on
+   the same vertical axis as the dots; the gap gives the arrows breathing room
+   from the dot cluster (matches the RWE reference). */
+.carousel.carousel-vertical .carousel-vnav {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 48px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Minimal thin chevrons, no circular button chrome (matches RWE): light-teal
+   at rest, darkening to the brand teal on hover/focus. */
+.carousel.carousel-vertical .carousel-vnav button {
+  position: relative;
+  pointer-events: auto;
+  width: 30px;
+  height: 24px;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background-color: transparent;
+  color: rgb(62 216 195);
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.carousel.carousel-vertical .carousel-vnav button:hover,
+.carousel.carousel-vertical .carousel-vnav button:focus-visible {
+  background-color: transparent;
+  color: var(--rwe-teal);
+}
+
+/* Keyboard focus: replace the browser-default black rectangular outline with a
+   brand-teal focus ring, scoped to the Spotlight rail's controls (both chevrons
+   and dots). Kept as an outline (not box-shadow) so it stays visible in forced-
+   colors/high-contrast mode; offset so it reads as a ring around the control.
+   The ring follows each control's own shape (round dots keep their 50% radius;
+   the chevron buttons get a small rounded-rect radius). */
+.carousel.carousel-vertical .carousel-vnav button:focus-visible {
+  outline: 2px solid var(--rwe-teal);
+  outline-offset: 3px;
+}
+
+.carousel.carousel-vertical .carousel-vnav button.slide-prev:focus-visible,
+.carousel.carousel-vertical .carousel-vnav button.slide-next:focus-visible {
+  border-radius: 2px;
+}
+
+/* thinner chevron strokes than the hero's circular arrows. Scoped to the two
+   arrow buttons only: the dot-rail buttons are also descendants of .carousel-vnav
+   (they sit in the <nav> between the arrows), so an unscoped `button::after` would
+   paint this half-border square on the round dots too, giving them a teardrop/
+   speech-bubble "tail". */
+.carousel.carousel-vertical .carousel-vnav button.slide-prev::after,
+.carousel.carousel-vertical .carousel-vnav button.slide-next::after {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border: 2px solid currentcolor;
+  border-bottom: 0;
+  border-left: 0;
+}
+
+/* prev = up chevron, next = down chevron */
+.carousel.carousel-vertical .carousel-vnav button.slide-prev::after {
+  left: 50%;
+  top: calc(50% + 2px);
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.carousel.carousel-vertical .carousel-vnav button.slide-next::after {
+  left: 50%;
+  top: calc(50% - 2px);
+  transform: translate(-50%, -50%) rotate(135deg);
+}
+
+/* ---------- Hero variant (slide content has an <h1>) ---------- */
+.carousel:has(.carousel-slide-content h1) {
+  position: relative;
+}
+
+/* Full-bleed: escape the 1170px section wrapper for the hero band. */
+.carousel-wrapper:has(.carousel-slide-content h1) {
+  max-width: 100%;
+  padding: 0;
+}
+
+.carousel:has(.carousel-slide-content h1) .carousel-slide {
+  min-height: 260px;
+  align-items: center;
+  justify-content: center;
+  background-image: var(--rwe-gradient);
+}
+
+.carousel:has(.carousel-slide-content h1) .carousel-slide-content {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 44px;
+  color: #fff;
+  text-align: left;
+}
+
+/* Translucent navy→teal content panel (matches RWE): a fixed-width card, left
+   aligned inside the content band, giving the white heading/subtitle/CTA a
+   legible surface over any hero image. */
+.carousel:has(.carousel-slide-content h1) .carousel-slide-content > * {
+  max-width: 560px;
+  box-sizing: border-box;
+}
+
+.carousel:has(.carousel-slide-content h1) .carousel-slide-content .carousel-panel {
+  max-width: 560px;
+  padding: 28px 32px 32px;
+  background-image: linear-gradient(45deg, rgb(29 68 119 / 88%) 22%, rgb(0 161 159 / 82%));
+}
+
+.carousel:has(.carousel-slide-content h1) .carousel-slide-content h1 {
+  margin: 0;
+  color: #fff;
+  font-size: var(--heading-font-size-xxl);
+  line-height: 1.1;
+
+  /* Balance the wrap across two lines (matches RWE's two-line title rhythm).
+     The exact word break differs from RWE's span-forced break, but the panel
+     width keeps it to two readable lines. */
+  text-wrap: balance;
+}
+
+.carousel:has(.carousel-slide-content h1) .carousel-slide-content h3 {
+  margin: 12px 0 0;
+  color: #fff;
+  font-size: var(--body-font-size-s);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.carousel:has(.carousel-slide-content h1) .carousel-slide-content p {
+  margin: 20px 0 0;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel:has(.carousel-slide-content h1) .carousel-slide-content a {
+  display: inline-block;
+  padding: 8px 16px;
+  border: 2px solid var(--rwe-teal);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.carousel:has(.carousel-slide-content h1) .carousel-slide-content a:hover,
+.carousel:has(.carousel-slide-content h1) .carousel-slide-content a:focus-visible {
+  background-color: var(--rwe-teal);
+  color: #fff;
+  text-decoration: none;
+}
+
+/* Overlay the dot indicators on the gradient band. */
+.carousel:has(.carousel-slide-content h1) > nav {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  z-index: 2;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel:has(.carousel-slide-content h1) .carousel-slide-indicator button {
+  background-color: rgb(255 255 255 / 55%);
+}
+
+.carousel:has(.carousel-slide-content h1) .carousel-slide-indicator button:disabled,
+.carousel:has(.carousel-slide-content h1) .carousel-slide-indicator button:hover,
+.carousel:has(.carousel-slide-content h1) .carousel-slide-indicator button:focus-visible {
+  background-color: var(--rwe-teal);
+}
+
+/* ---------- Spotlight section header ----------
+   The small teal glyph before the "Spotlight @ RWE.com" heading sits INLINE to
+   the left of it (matches RWE), not stacked on its own line. It lives in a <p>
+   in the section's default-content-wrapper, immediately before the
+   .carousel-wrapper — a combination unique to the Spotlight section (the hero
+   carries its heading inside the slides, so it has no such wrapper). */
+.default-content-wrapper:has(+ .carousel-wrapper) {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.default-content-wrapper:has(+ .carousel-wrapper) > p {
+  margin: 0;
+  line-height: 0;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.default-content-wrapper:has(+ .carousel-wrapper) > p img {
+  width: 28px;
+  height: 28px;
+}
+
+.default-content-wrapper:has(+ .carousel-wrapper) > h2 {
+  margin: 0;
+}
+
+/* ---------- Spotlight variant (slide content has an <h4>) ----------
+   Vertical slider (matches RWE): a left control rail (up-chevron · vertical dot
+   rail · down-chevron) beside the slide viewport. Each slide is text-left /
+   contained-image-right on desktop, stacked on mobile. */
+
+/* positioning context so the absolutely-positioned dot rail / arrows anchor to
+   the carousel (and align beside the slide viewport), not a distant ancestor */
+.carousel.carousel-vertical {
+  position: relative;
+}
+
+/* left gutter on the slides container makes room for the control rail */
+.carousel.carousel-vertical .carousel-slides-container {
+  padding-left: 48px;
+}
+
+/* dot rail: sits between the two arrows INSIDE the .carousel-vnav group (which
+   handles absolute positioning + vertical centring), so the nav itself is just
+   an in-flow block here. */
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel.carousel-vertical .carousel-vnav > nav {
+  width: 48px;
+}
+
+.carousel.carousel-vertical .carousel-slide-indicators {
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+}
+
+/* Dot rail (matches RWE): every dot is teal — light teal at rest, and the
+   ACTIVE dot is larger and uses the darker brand teal (no grey inactive state
+   as on the hero/shared dots). */
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel.carousel-vertical .carousel-slide-indicator button {
+  width: 14px;
+  height: 14px;
+  background-color: rgb(62 216 195);
+  transition: width 0.2s ease, height 0.2s ease, background-color 0.2s ease;
+}
+
+/* stylelint-disable no-descending-specificity */
+.carousel.carousel-vertical .carousel-slide-indicator button:hover,
+.carousel.carousel-vertical .carousel-slide-indicator button:focus-visible {
+  background-color: var(--rwe-teal);
+}
+/* stylelint-enable no-descending-specificity */
+
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel.carousel-vertical .carousel-slide-indicator button:disabled {
+  width: 18px;
+  height: 18px;
+  background-color: var(--rwe-teal);
+}
+
+.carousel:has(.carousel-slide-content h4) .carousel-slide {
+  min-height: 0;
+  align-items: stretch;
+  flex-direction: column;
+  padding: 0 8px 0 16px;
+  gap: 16px;
+}
+
+/* image column: contained (not full-bleed), 16:9, to the side of the text */
+.carousel:has(.carousel-slide-content h4) .carousel-slide-image {
+  order: 1;
+  width: 100%;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel:has(.carousel-slide-content h4) .carousel-slide-image picture {
+  display: block;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel:has(.carousel-slide-content h4) .carousel-slide-image img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.carousel:has(.carousel-slide-content h4) .carousel-slide-content {
+  order: 0;
+  width: 100%;
+  padding: 20px 4px 4px;
+  color: var(--text-color);
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel:has(.carousel-slide-content h4) .carousel-slide-content > p:first-child {
+  margin: 0 0 4px;
+  color: var(--text-muted-color);
+  font-size: var(--body-font-size-xs);
+}
+
+.carousel:has(.carousel-slide-content h4) .carousel-slide-content h4 {
+  margin: 0 0 8px;
+  color: var(--text-color);
+  font-size: var(--heading-font-size-m);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel:has(.carousel-slide-content h4) .carousel-slide-content p {
+  max-width: 760px;
+  margin: 0 0 8px;
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel:has(.carousel-slide-content h4) .carousel-slide-content a {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--link-color);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.carousel:has(.carousel-slide-content h4) .carousel-slide-content a:hover,
+.carousel:has(.carousel-slide-content h4) .carousel-slide-content a:focus-visible {
+  color: var(--link-hover-color);
+  text-decoration: underline;
+}
+
+/* ---------- Responsive ---------- */
+@media (width >= 600px) {
+  .carousel:not(.carousel-vertical) .carousel-navigation-buttons {
+    left: 16px;
+    right: 16px;
+  }
+
+  .carousel:has(.carousel-slide-content h1) .carousel-slide {
+    min-height: 340px;
+  }
+}
+
+/* Spotlight goes side-by-side (text left, contained image right — matches RWE)
+   at the same 769px point the full header appears, keeping each vertical slide
+   short enough to fit the fixed viewport across the whole full-header range. */
+@media (width >= 769px) {
+  .carousel:has(.carousel-slide-content h4) .carousel-slide {
+    flex-direction: row;
+    align-items: center;
+    gap: 40px;
+    padding: 8px 24px 8px 8px;
+  }
+
+  .carousel:has(.carousel-slide-content h4) .carousel-slide-content {
+    order: 0;
+    flex: 1 1 auto;
+    padding: 0;
+  }
+
+  .carousel:has(.carousel-slide-content h4) .carousel-slide-image {
+    order: 1;
+    flex: 0 0 42%;
+    max-width: 42%;
+  }
+
+  /* vertical viewport = one side-by-side slide tall (fits the longest item) */
+  .carousel.carousel-vertical .carousel-slides {
+    height: 300px;
+  }
+
+  .carousel.carousel-vertical .carousel-slides-container {
+    padding-left: 56px;
+  }
+}
+
+@media (width >= 900px) {
+  .carousel:has(.carousel-slide-content h1) .carousel-slide {
+    min-height: 640px;
+  }
+
+  .carousel:has(.carousel-slide-content h1) .carousel-slide-content {
+    padding: 40px 60px;
+  }
+}
+
+/* full desktop hero height matches RWE's 847px */
+@media (width >= 1200px) {
+  .carousel:has(.carousel-slide-content h1) .carousel-slide {
+    min-height: 847px;
+  }
+}
