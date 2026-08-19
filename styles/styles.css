@@ -1,3 +1,5 @@
+@import url('brand.css');
+
 /*
  * Copyright 2020 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
@@ -10,63 +12,24 @@
  * governing permissions and limitations under the License.
  */
 
-:root {
-  /* colors */
-  --background-color: white;
-  --light-color: #f8f8f8;
-  --dark-color: #505050;
-  --text-color: #131313;
-  --link-color: #3b63fb;
-  --link-hover-color: #1d3ecf;
-
-  /* fonts */
-  --body-font-family: roboto, roboto-fallback, sans-serif;
-  --heading-font-family: roboto-condensed, roboto-condensed-fallback, sans-serif;
-
-  /* body sizes */
-  --body-font-size-m: 22px;
-  --body-font-size-s: 19px;
-  --body-font-size-xs: 17px;
-
-  /* heading sizes */
-  --heading-font-size-xxl: 55px;
-  --heading-font-size-xl: 44px;
-  --heading-font-size-l: 34px;
-  --heading-font-size-m: 27px;
-  --heading-font-size-s: 24px;
-  --heading-font-size-xs: 22px;
-
-  /* nav height */
-  --nav-height: 64px;
-}
-
-/* fallback fonts */
-@font-face {
-  font-family: roboto-condensed-fallback;
-  size-adjust: 88.82%;
-  src: local('Arial');
-}
-
-@font-face {
-  font-family: roboto-fallback;
-  size-adjust: 99.529%;
-  src: local('Arial');
-}
+/* Design tokens (colors, fonts, sizes, layout) live in brand.css. */
 
 @media (width >= 900px) {
   :root {
-    /* body sizes */
-    --body-font-size-m: 18px;
-    --body-font-size-s: 16px;
-    --body-font-size-xs: 14px;
+    /* heading sizes scale up on tablet/desktop */
+    --heading-font-size-xxl: 36px;
+    --heading-font-size-xl: 28px;
+    --heading-font-size-l: 22px;
+    --heading-font-size-m: 18px;
+    --heading-font-size-s: 16px;
+    --heading-font-size-xs: 15px;
+  }
+}
 
-    /* heading sizes */
-    --heading-font-size-xxl: 45px;
-    --heading-font-size-xl: 36px;
-    --heading-font-size-l: 28px;
-    --heading-font-size-m: 22px;
-    --heading-font-size-s: 20px;
-    --heading-font-size-xs: 18px;
+@media (width >= 1200px) {
+  :root {
+    --heading-font-size-xxl: 42px;
+    --heading-font-size-xl: 30px;
   }
 }
 
@@ -76,8 +39,9 @@ body {
   background-color: var(--background-color);
   color: var(--text-color);
   font-family: var(--body-font-family);
-  font-size: var(--body-font-size-m);
-  line-height: 1.6;
+  font-size: var(--body-font-size-s);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 body.appear {
@@ -105,15 +69,29 @@ h4,
 h5,
 h6 {
   margin-top: 0.8em;
-  margin-bottom: 0.25em;
+  margin-bottom: 0.35em;
   font-family: var(--heading-font-family);
-  font-weight: 600;
-  line-height: 1.25;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-color);
   scroll-margin: 40px;
 }
 
 h1 { font-size: var(--heading-font-size-xxl); }
-h2 { font-size: var(--heading-font-size-xl); }
+
+h2 {
+  font-size: var(--heading-font-size-xl);
+  color: var(--rwe-teal);
+}
+
+/* RWE "hea01--centered" headline (the strategy pull-quote "The best energy
+   company we can be!"): centered and in brand navy rather than the default teal
+   heading. Scoped to its id so other h2s are unaffected. */
+h2#the-best-energy-company-we-can-be {
+  color: var(--rwe-navy);
+  text-align: center;
+}
+
 h3 { font-size: var(--heading-font-size-l); }
 h4 { font-size: var(--heading-font-size-m); }
 h5 { font-size: var(--heading-font-size-s); }
@@ -126,7 +104,12 @@ ul,
 pre,
 blockquote {
   margin-top: 0.8em;
-  margin-bottom: 0.25em;
+  margin-bottom: 0.35em;
+}
+
+p {
+  color: var(--text-color);
+  line-height: 1.5;
 }
 
 code,
@@ -158,6 +141,7 @@ a:any-link {
   color: var(--link-color);
   text-decoration: none;
   overflow-wrap: break-word;
+  transition: color 0.2s ease;
 }
 
 a:hover {
@@ -167,7 +151,7 @@ a:hover {
 
 /* buttons */
 p.button-wrapper {
-  margin: 12px 0;
+  margin: 16px 0;
 }
 
 a.button:any-link,
@@ -178,17 +162,18 @@ button.button {
   justify-content: center;
   max-width: 100%;
   margin: 0;
-  border: 2px solid transparent;
-  border-radius: 2.4em;
-  padding: 0.5em 1.2em;
+  border: 2px solid var(--rwe-teal);
+  border-radius: 0;
+  padding: 0.7em 1.6em;
   font: inherit;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1.25;
   text-decoration: none;
   cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 a.button[aria-disabled="true"],
@@ -197,20 +182,21 @@ button.button:disabled {
   pointer-events: none;
 }
 
+/* primary = solid teal */
 a.button.primary,
 button.button.primary {
-  border-color: var(--text-color);
-  background-color: var(--text-color);
-  color: var(--background-color);
+  border-color: var(--rwe-teal);
+  background-color: var(--rwe-teal);
+  color: #fff;
 }
 
 a.button.primary:hover,
 a.button.primary:focus-visible,
 button.button.primary:hover,
 button.button.primary:focus-visible {
-  border-color: var(--dark-color);
-  background-color: var(--dark-color);
-  color: var(--light-color);
+  border-color: var(--rwe-navy);
+  background-color: var(--rwe-navy);
+  color: #fff;
 }
 
 a.button.primary[aria-disabled="true"],
@@ -221,23 +207,24 @@ button.button.primary:disabled:hover,
 button.button.primary:disabled:focus-visible {
   background-color: var(--light-color);
   border-color: var(--light-color);
-  color: var(--dark-color);
+  color: var(--text-muted-color);
 }
 
+/* secondary = outlined */
 a.button.secondary,
 button.button.secondary {
-  border-color: var(--text-color);
+  border-color: var(--rwe-teal);
   background-color: transparent;
-  color: var(--text-color);
+  color: var(--rwe-teal);
 }
 
 a.button.secondary:hover,
 a.button.secondary:focus-visible,
 button.button.secondary:hover,
 button.button.secondary:focus-visible {
-  border-color: var(--dark-color);
-  background-color: var(--light-color);
-  color: var(--dark-color);
+  border-color: var(--rwe-navy);
+  background-color: var(--rwe-navy);
+  color: #fff;
 }
 
 a.button.secondary[aria-disabled="true"],
@@ -248,23 +235,25 @@ button.button.secondary:disabled:hover,
 button.button.secondary:disabled:focus-visible {
   background-color: var(--light-color);
   border-color: var(--light-color);
-  color: var(--dark-color);
+  color: var(--text-muted-color);
 }
 
-/* high-impact call-to-action */
+/* high-impact call-to-action = navy→teal gradient */
 a.button.accent,
 button.button.accent {
-  border-color: var(--link-color);
-  background-color: var(--link-color);
-  color: var(--background-color);
+  border-color: transparent;
+  background-image: var(--rwe-gradient);
+  color: #fff;
 }
 
 a.button.accent:hover,
 a.button.accent:focus-visible,
 button.button.accent:hover,
 button.button.accent:focus-visible {
-  border-color: var(--link-hover-color);
-  background-color: var(--link-hover-color);
+  border-color: transparent;
+  background-image: none;
+  background-color: var(--rwe-navy);
+  color: #fff;
 }
 
 a.button.accent[aria-disabled="true"],
@@ -273,9 +262,10 @@ a.button.accent[aria-disabled="true"]:focus-visible,
 button.button.accent:disabled,
 button.button.accent:disabled:hover,
 button.button.accent:disabled:focus-visible {
+  background-image: none;
   background-color: var(--light-color);
   border-color: var(--light-color);
-  color: var(--dark-color);
+  color: var(--text-muted-color);
 }
 
 main img {
@@ -295,13 +285,28 @@ main img {
   width: 100%;
 }
 
+/*
+ * Decorative default-content images (RWE "Spotlight" info icon, "energy field"
+ * line graphics). The scraper stripped their width/srcset hints, so the global
+ * `main img { width: auto }` let them stretch to the full content width. On the
+ * original site these are small accents, so cap them at their intrinsic size
+ * and center them. Scoped to default-content wrappers only — block images
+ * (hero, cards, columns) are unaffected.
+ */
+main .default-content-wrapper picture img {
+  width: auto;
+  max-width: 100%;
+  max-height: 120px;
+  margin: 0 auto;
+}
+
 /* sections */
 main > .section {
-  margin: 40px 0;
+  margin: 48px 0;
 }
 
 main > .section > div {
-  max-width: 1200px;
+  max-width: var(--content-width);
   margin: auto;
   padding: 0 24px;
 }
@@ -311,15 +316,180 @@ main > .section:first-of-type {
 }
 
 @media (width >= 900px) {
+  main > .section {
+    margin: 64px 0;
+  }
+
   main > .section > div {
     padding: 0 32px;
   }
 }
 
-/* section metadata */
+/* section background variants (mapped from RWE section-metadata styles) */
 main .section.light,
 main .section.highlight {
   background-color: var(--light-color);
   margin: 0;
-  padding: 40px 0;
+  padding: 48px 0;
+}
+
+/* RWE alternating "color-background-2" sections render as a warm light tint */
+main .section.light-green {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--rwe-light);
+  margin: 0;
+  padding: 48px 0;
+}
+
+/* Decorative "energy waves" line-art (matches RWE): the leading <p> of these
+   sections holds two faint wave graphics (blue + teal). RWE positions them
+   absolutely, bleeding off the section's right and left edges BEHIND the
+   content, not as inline badges. The <p> becomes a full-section backdrop layer
+   (z-index below the in-flow content) and each picture is pinned to an edge. */
+main .section.light-green > .default-content-wrapper > p:first-child:has(picture) {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+main .section.light-green > .default-content-wrapper > p:first-child:has(picture) picture {
+  position: absolute;
+  display: block;
+
+  /* full 400px graphic, bleeding ~310px off the edge so only a ~90px sliver
+     shows — matches how RWE anchors these waves to the section edges */
+  width: 400px;
+  opacity: 0.85;
+}
+
+/* blue waves bleed off the RIGHT edge, upper area */
+main .section.light-green > .default-content-wrapper > p:first-child:has(picture) picture:first-of-type {
+  top: 40px;
+  right: -310px;
+}
+
+/* teal waves bleed off the LEFT edge, slightly lower */
+main .section.light-green > .default-content-wrapper > p:first-child:has(picture) picture:last-of-type {
+  top: 20px;
+  left: -310px;
+}
+
+main .section.light-green > .default-content-wrapper > p:first-child:has(picture) img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* keep the real section content painting above the decorative backdrop */
+main .section.light-green > .default-content-wrapper > *:not(p:first-child),
+main .section.light-green > .columns-wrapper,
+main .section.light-green > .cards-wrapper,
+main .section.light-green > .embed-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+/* Small breathing room below the "Responsibility/Information for…" feature and
+   the card grid that follows it — otherwise the columns-wrapper and cards-wrapper
+   sit flush (0px). Scoped to this tinted section's own wrappers. */
+main .section.light-green > .columns-wrapper,
+main .section.light-green > .cards-wrapper {
+  margin-bottom: 24px;
+}
+
+/* Extra space ABOVE the card grid so it sits clearly apart from the feature
+   above it. Uses padding-top (additive) rather than margin, which would collapse
+   with the feature's bottom margin. */
+main .section.light-green > .cards-wrapper {
+  padding-top: 24px;
+}
+
+/* Same breathing room in plain (non-tinted) sections where a card grid follows
+   a feature/columns block and would otherwise sit flush (e.g. the careers
+   "Explore your opportunities" teaser above its career-world cards): space both
+   below the feature and above the cards. */
+main .section:not(.light-green) > .columns-wrapper:has(+ .cards-wrapper) {
+  margin-bottom: 24px;
+}
+
+main .section:not(.light-green) > .columns-wrapper + .cards-wrapper {
+  padding-top: 24px;
+}
+
+/* Standalone text intro (RWE "tic02--centered"): a section whose sole content is
+   a heading + paragraph (e.g. "Our energy for a sustainable life") is centered
+   on RWE, with the copy held to a comfortable measure rather than running the
+   full content width. Scoped to a text-only .default-content-wrapper that is the
+   only child of its (non-tinted, non-dark) section, so card/columns section
+   intros are unaffected. */
+main .section:not(.light-green, .dark):has(> .default-content-wrapper:only-child)
+  > .default-content-wrapper {
+  text-align: center;
+}
+
+main .section:not(.light-green, .dark):has(> .default-content-wrapper:only-child)
+  > .default-content-wrapper > p {
+  max-width: 900px;
+  margin-inline: auto;
+}
+
+/* "Our expertise…" intro (also RWE "tic02--centered") lives inside the tinted
+   light-green section alongside card grids, so it isn't the section's only
+   child. Center it and its copy — matched via an attribute selector because the
+   heading id contains a double hyphen (from the "–" en-dash) — so the sibling
+   card headings/text in the same section are unaffected. */
+/* stylelint-disable no-descending-specificity */
+h2[id="our-expertise--opening-up-new-ways-to-save-electricity"],
+h2[id="our-expertise--opening-up-new-ways-to-save-electricity"] + p {
+  text-align: center;
+}
+
+h2[id="our-expertise--opening-up-new-ways-to-save-electricity"] + p {
+  max-width: 900px;
+  margin-inline: auto;
+}
+
+/* "International, open, diverse…" careers intro (also RWE "tic02--centered") —
+   a multi-paragraph text intro in a plain section shared with the careers
+   feature + cards, so it isn't the section's only child. Center the whole
+   default-content wrapper (heading + all paragraphs, including the bold CTA
+   line) and hold the copy to a comfortable measure. Matched via the wrapper
+   that contains this id'd heading. */
+main .section > .default-content-wrapper:has(> h2[id="international-open-diverse--working-at-rwe"]) {
+  text-align: center;
+}
+
+main .section > .default-content-wrapper:has(> h2[id="international-open-diverse--working-at-rwe"]) > p {
+  max-width: 900px;
+  margin-inline: auto;
+}
+/* stylelint-enable no-descending-specificity */
+
+main .section.dark {
+  background-color: var(--rwe-navy);
+  color: #fff;
+  margin: 0;
+  padding: 48px 0;
+}
+
+/* stylelint-disable no-descending-specificity */
+main .section.dark h1,
+main .section.dark h2,
+main .section.dark h3,
+main .section.dark h4,
+main .section.dark p {
+  color: #fff;
+}
+/* stylelint-enable no-descending-specificity */
+
+@media (width >= 900px) {
+  main .section.light,
+  main .section.highlight,
+  main .section.light-green,
+  main .section.dark {
+    padding: 64px 0;
+  }
 }

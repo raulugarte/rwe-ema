@@ -1,0 +1,76 @@
+/*
+ * Video block — RWE.
+ * Responsive 16:9 frame; poster facade with a centered navy→teal play button
+ * (matching RWE's "Play Video" affordance). Square corners, brand palette.
+ */
+
+.video {
+  position: relative;
+  width: 100%;
+  margin: 16px 0;
+}
+
+.video video,
+.video .video-facade {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  background-color: #000;
+}
+
+.video video {
+  object-fit: cover;
+}
+
+/* poster facade (click-to-play) */
+.video .video-facade {
+  position: relative;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.video .video-facade picture,
+.video .video-facade img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* centered play button */
+.video .video-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 72px;
+  height: 72px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background-image: var(--rwe-gradient);
+  box-shadow: 0 4px 16px rgb(29 68 119 / 35%);
+  transition: transform 0.2s ease;
+}
+
+/* play triangle */
+.video .video-play::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 54%;
+  transform: translate(-50%, -50%);
+  border-style: solid;
+  border-width: 12px 0 12px 20px;
+  border-color: transparent transparent transparent #fff;
+}
+
+.video .video-facade:hover .video-play,
+.video .video-facade:focus-visible .video-play {
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.video .video-facade:focus-visible {
+  outline: 2px solid var(--rwe-teal);
+  outline-offset: 2px;
+}

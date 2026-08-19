@@ -1,11 +1,26 @@
+/*
+ * RWE footer.
+ * Navy→teal gradient background (matches RWE), white text. Layout regions
+ * (tagged in footer.js):
+ *  .footer-social  — "You can also find us on …" social icons + "Talk to us"
+ *  .footer-links   — link-group columns (Start pages / Quick links / We recommend)
+ *  .footer-legal   — legal link bar + "© RWE 2026"
+ * On desktop the social block is a full-width band on top (find-us | talk-to-us),
+ * the three link groups sit in an equal 3-column row below, and the legal bar
+ * spans the full width across the bottom — mirroring rwe.com's footer.
+ * Social icons render from content/footer.plain.html (RWE-hosted SVGs).
+ */
+
 footer {
-  background-color: var(--light-color);
+  background-color: var(--rwe-navy);
+  background-image: var(--rwe-gradient);
+  color: #fff;
   font-size: var(--body-font-size-xs);
 }
 
-footer .footer > div {
+footer .footer {
   margin: auto;
-  max-width: 1200px;
+  max-width: var(--content-width);
   padding: 40px 24px 24px;
 }
 
@@ -13,8 +28,165 @@ footer .footer p {
   margin: 0;
 }
 
+footer .footer a:any-link {
+  color: #fff;
+  text-decoration: none;
+}
+
+footer .footer a:hover {
+  color: rgb(62 216 195);
+  text-decoration: underline;
+}
+
+footer .footer h2,
+footer .footer h3 {
+  color: #fff;
+  font-size: var(--body-font-size-s);
+  margin: 0 0 16px;
+}
+
+footer .footer ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------- social band: "find us" icons + "Talk to us" ---------- */
+footer .footer-social {
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgb(255 255 255 / 20%);
+}
+
+footer .footer-social ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+footer .footer-social img {
+  width: 40px;
+  height: 40px;
+  display: block;
+}
+
+footer .footer-social h3 {
+  margin-top: 8px;
+}
+
+/* "Contact us" renders as a teal filled button (matches RWE) */
+/* stylelint-disable-next-line no-descending-specificity */
+footer .footer-social p a {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: var(--rwe-teal);
+  color: #fff;
+  font-weight: 700;
+  border-radius: 2px;
+}
+
+footer .footer-social p a:hover,
+footer .footer-social p a:focus-visible {
+  background-color: #fff;
+  color: var(--rwe-navy);
+  text-decoration: none;
+}
+
+/* ---------- link-group columns ---------- */
+footer .footer-links {
+  padding: 24px 0;
+  border-bottom: 1px solid rgb(255 255 255 / 20%);
+}
+
+footer .footer-links li {
+  padding: 7px 0;
+}
+
+/* ---------- legal bar ---------- */
+footer .footer-legal {
+  padding-top: 20px;
+}
+
+footer .footer-legal ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-bottom: 12px;
+}
+
+footer .footer-legal p {
+  color: rgb(255 255 255 / 75%);
+}
+
+@media (width >= 600px) {
+  footer .footer-social ul {
+    gap: 20px;
+  }
+}
+
+/* tablet+: social band is a two-up (find-us | talk-to-us); link groups become a
+   3-column row; legal bar spans full width with links left / copyright right. */
 @media (width >= 900px) {
+  footer .footer {
+    padding: 48px 32px 24px;
+  }
+
+  /* the fragment wrapper (footer.js) holds the 5 sections; make IT the grid so
+     the three link groups line up in a row (matches RWE). */
   footer .footer > div {
-    padding: 40px 32px 24px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0 32px;
+    align-items: start;
+  }
+
+  /* full-width social band; its own two-column split inside */
+  footer .footer-social {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+    align-items: start;
+    margin-bottom: 24px;
+  }
+
+  /* the social icons live in the first sub-column; "Talk to us" in the second.
+     The h2/ul are the find-us group; the h3/p are the talk-to-us group. Place
+     the talk-to-us heading + button into the right sub-column. */
+  footer .footer-social h3,
+  footer .footer-social p {
+    grid-column: 2;
+  }
+
+  footer .footer-social h2,
+  footer .footer-social ul {
+    grid-column: 1;
+  }
+
+  footer .footer-social ul {
+    margin-bottom: 0;
+  }
+
+  /* three equal link columns on the row below the social band */
+  footer .footer-links {
+    border-bottom: 0;
+    padding: 0;
+  }
+
+  /* legal bar spans full width; links left, copyright pushed right */
+  footer .footer-legal {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgb(255 255 255 / 20%);
+  }
+
+  footer .footer-legal ul {
+    margin-bottom: 0;
   }
 }
